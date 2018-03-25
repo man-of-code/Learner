@@ -1,5 +1,9 @@
 ## hack-on-hills
 
+## Project : Learner
+
+A simple neural network, learning a simple game, using reinforcement learning and epsilon greedy implementation.
+
 **Install Dependancies :**
 
 1. random
