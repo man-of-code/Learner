@@ -2,7 +2,7 @@
 
 ## Project : Learner
 
-A simple neural network, learning a simple game, using reinforcement learning and epsilon greedy implementation.
+A simple neural network, learning a simple game, using [reinforcement learning](https://www.analyticsvidhya.com/blog/2017/01/introduction-to-reinforcement-learning-implementation/) and epsilon greedy implementation.
 
 **Install Dependancies :**
 
