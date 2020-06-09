@@ -11,20 +11,29 @@ import random
 import csv
 import os.path
 import timeit
-MAX_IN = 3 
+
+MAX_IN = 3
 TUNE = True
 GAMMA = 0.9
 
+
 def train_net(model, neural):
 
-    filename = str(neural['network'][0]) + '-' + str(neural['network'][1]) + '-' + \
-    		str(neural['batchSize']) + '-' + str(neural['buffer'])
+    filename = (
+        str(neural["network"][0])
+        + "-"
+        + str(neural["network"][1])
+        + "-"
+        + str(neural["batchSize"])
+        + "-"
+        + str(neural["buffer"])
+    )
 
-    observe = 1000  
+    observe = 1000
     epsilon = 1
-    train_frames = 100000  
-    batchSize = neural['batchSize']
-    buffer = neural['buffer']
+    train_frames = 100000
+    batchSize = neural["batchSize"]
+    buffer = neural["buffer"]
 
     max_distance = 0
     ob_distance = 0
@@ -42,10 +51,10 @@ def train_net(model, neural):
         ob_distance += 1
 
         if random.random() < epsilon or t < observe:
-            action = num.random.randint(0, 3) 
+            action = num.random.randint(0, 3)
         else:
             qval = model.predict(state, batch_size=1)
-            action = (num.argmax(qval)) 
+            action = num.argmax(qval)
 
         reward, new_state = game_state.frame_step(action)
 
@@ -63,8 +72,12 @@ def train_net(model, neural):
 
             history = LossHistory()
             model.fit(
-                X_train, y_train, batch_size=batchSize,
-                nb_epoch=1, verbose=0, callbacks=[history]
+                X_train,
+                y_train,
+                batch_size=batchSize,
+                nb_epoch=1,
+                verbose=0,
+                callbacks=[history],
             )
             loss_log.append(history.losses)
 
@@ -73,7 +86,7 @@ def train_net(model, neural):
 
         # Decrement epsilon over time.
         if epsilon > 0.1 and t > observe:
-            epsilon -= (1.0/train_frames)
+            epsilon -= 1.0 / train_frames
 
         if reward == -500:
             data_collect.append([t, ob_distance])
@@ -84,29 +97,33 @@ def train_net(model, neural):
             tot_time = timeit.default_timer() - start_time
             fps = ob_distance / tot_time
 
-            print("Max Score: %d at %d\tepsilon %f\t(%d)\t" %
-                  (max_distance, t, epsilon, ob_distance))
+            print(
+                "Max Score: %d at %d\tepsilon %f\t(%d)\t"
+                % (max_distance, t, epsilon, ob_distance)
+            )
             ob_distance = 0
             start_time = timeit.default_timer()
 
         if t % 25000 == 0:
-            model.save_weights('models/' + filename + '-' +
-                               str(t) + '.h5',
-                               overwrite=True)
+            model.save_weights(
+                "models/" + filename + "-" + str(t) + ".h5", overwrite=True
+            )
             print("Model Saved %s - %d" % (filename, t))
 
     log(filename, data_collect, loss_log)
 
+
 def log(filename, data_collect, loss_log):
 
-    with open('Data/learn_data-' + filename + '.csv', 'w') as data_dump:
+    with open("Data/learn_data-" + filename + ".csv", "w") as data_dump:
         wr = csv.writer(data_dump)
         wr.writerows(data_collect)
 
-    with open('Data/loss_data-' + filename + '.csv', 'w') as lf:
+    with open("Data/loss_data-" + filename + ".csv", "w") as lf:
         wr = csv.writer(lf)
         for loss_item in loss_log:
             wr.writerow(loss_item)
+
 
 # epsilon greedy implementation.
 def process_minibatch(minibatch, model):
@@ -130,64 +147,74 @@ def process_minibatch(minibatch, model):
     non_term_inds = num.where(rewards != -500)[0]
     term_inds = num.where(rewards == -500)[0]
 
-    y[non_term_inds, actions[non_term_inds].astype(int)] = rewards[non_term_inds] + (GAMMA * maxQs[non_term_inds])
+    y[non_term_inds, actions[non_term_inds].astype(int)] = rewards[non_term_inds] + (
+        GAMMA * maxQs[non_term_inds]
+    )
     y[term_inds, actions[term_inds].astype(int)] = rewards[term_inds]
 
     X_train = old_states
     y_train = y
     return X_train, y_train
 
+
 def launch_learn(neural):
-    filename = str(neural['network'][0]) + '-' + str(neural['network'][1]) + '-' + \
-    str(neural['batchSize']) + '-' + str(neural['buffer'])
+    filename = (
+        str(neural["network"][0])
+        + "-"
+        + str(neural["network"][1])
+        + "-"
+        + str(neural["batchSize"])
+        + "-"
+        + str(neural["buffer"])
+    )
     print("Trying %s" % filename)
-    if not os.path.isfile('Data/loss_data-' + filename + '.csv'):
-        open('Data/loss_data-' + filename + '.csv', 'a').close()
+    if not os.path.isfile("Data/loss_data-" + filename + ".csv"):
+        open("Data/loss_data-" + filename + ".csv", "a").close()
         print("Initializing Test...")
-        model = neural_net(MAX_IN, neural['network'])
+        model = neural_net(MAX_IN, neural["network"])
         train_net(model, neural)
     else:
         print("Done Testing....")
+
 
 class LossHistory(Callback):
     def on_train_begin(self, logs={}):
         self.losses = []
 
     def on_batch_end(self, batch, logs={}):
-        self.losses.append(logs.get('loss'))
+        self.losses.append(logs.get("loss"))
 
-def neural_net(num_sensors, neural, load=''):
-    model = Sequential() 
+
+def neural_net(num_sensors, neural, load=""):
+    model = Sequential()
 
     # First layer.
-    model.add(Dense(
-        neural[0], init='lecun_uniform', input_shape=(num_sensors,)
-    ))
-    model.add(Activation('relu'))
+    model.add(Dense(neural[0], init="lecun_uniform", input_shape=(num_sensors,)))
+    model.add(Activation("relu"))
     model.add(Dropout(0.2))
 
     # Second layer with relu function.
-    model.add(Dense(neural[1], init='lecun_uniform'))
-    model.add(Activation('relu'))
+    model.add(Dense(neural[1], init="lecun_uniform"))
+    model.add(Activation("relu"))
     model.add(Dropout(0.2))
 
     # Output layer with linear function.
-    model.add(Dense(3, init='lecun_uniform'))
-    model.add(Activation('linear'))
+    model.add(Dense(3, init="lecun_uniform"))
+    model.add(Activation("linear"))
 
     rms = RMSprop()
-    model.compile(loss='mse', optimizer=rms) # optimizer:algo to distribute weights
+    model.compile(loss="mse", optimizer=rms)  # optimizer:algo to distribute weights
 
     if load:
         model.load_weights(load)
 
     return model
-    
+
+
 if __name__ == "__main__":
     if TUNE:
         neurals_list = []
-        network_neural = [[164, 150], [256, 256],
-                     [512, 512], [1000, 1000]]
+        network_neural = [[164, 150], [256, 256], [512, 512], [1000, 1000]]
         batchSizes = [40, 100, 400]
         buffers = [10000, 50000]
         # test different values...............................................
@@ -197,7 +224,7 @@ if __name__ == "__main__":
                     neural = {
                         "batchSize": batchSize,
                         "buffer": buffer,
-                        "network": network_neurals
+                        "network": network_neurals,
                     }
                     neurals_list.append(neural)
 
@@ -206,10 +233,6 @@ if __name__ == "__main__":
 
     else:
         network_neurals = [128, 128]
-        neural = {
-            "batchSize": 64,
-            "buffer": 50000,
-            "network": network_neurals
-        }
+        neural = {"batchSize": 64, "buffer": 50000, "network": network_neurals}
         model = neural_net(MAX_IN, network_neurals)
         train_net(model, neural)

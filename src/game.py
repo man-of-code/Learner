@@ -18,12 +18,13 @@ clock = pygame.time.Clock()
 show_sensors = True
 draw_screen = True
 
+
 class GameState:
     def __init__(self):
         self.crashed = False
 
         self.space = pymunk.Space()
-        self.space.gravity = pymunk.Vec2d(0., 0.)
+        self.space.gravity = pymunk.Vec2d(0.0, 0.0)
 
         self.create_ob(100, 100, 0.5)
 
@@ -31,24 +32,18 @@ class GameState:
         self.cnt = 0
         self.mx = 0
         static = [
+            pymunk.Segment(self.space.static_body, (0, 1), (0, height), 6),
+            pymunk.Segment(self.space.static_body, (1, height), (width, height), 6),
             pymunk.Segment(
-                self.space.static_body,
-                (0, 1), (0, height), 6),
-            pymunk.Segment(
-                self.space.static_body,
-                (1, height), (width, height), 6),
-            pymunk.Segment(
-                self.space.static_body,
-                (width-1, height), (width-1, 1), 6),
-            pymunk.Segment(
-                self.space.static_body,
-                (1, 1), (width, 1), 6)
+                self.space.static_body, (width - 1, height), (width - 1, 1), 6
+            ),
+            pymunk.Segment(self.space.static_body, (1, 1), (width, 1), 6),
         ]
         for s in static:
-            s.friction = 1.
+            s.friction = 1.0
             s.group = 1
             s.collision_type = 1
-            s.color = THECOLORS['grey7']
+            s.color = THECOLORS["grey7"]
         self.space.add(static)
 
         self.ast = []
@@ -57,24 +52,33 @@ class GameState:
         self.ast.append(self.create_ast(600, 600, 0.8))
         self.ast.append(self.create_ast(100, 600, 0.4))
         self.create_mover()
-    '''def create_ast(self, x, y, r):
+
+    """def create_ast(self, x, y, r):
         c_body = pymunk.Body(pymunk.inf, pymunk.inf)
         c_shape = pymunk.Circle(c_body, r)
         c_shape.elasticity = 1.0
         c_body.position = x, y
         c_shape.color = THECOLORS["blue"]
         self.space.add(c_body, c_shape)
-        return c_body'''
+        return c_body"""
 
     def create_ast(self, x, y, r):
-     #   c_body = pymunk.Body(mass=0, moment=0, \
-      #      body_type= <class'CP_BODY_TYPE_DYNAMIC'>)
+        #   c_body = pymunk.Body(mass=0, moment=0, \
+        #      body_type= <class'CP_BODY_TYPE_DYNAMIC'>)
         c_body = pymunk.Body(pymunk.inf, pymunk.inf)
-        vertices = [(40*r, 0), (80*r, 0), (120*r, 40*r), (120*r, 80*r), (80*r, 120*r),
-         (40*r, 120*r), (0, 80*r), (0, 40*r)]
+        vertices = [
+            (40 * r, 0),
+            (80 * r, 0),
+            (120 * r, 40 * r),
+            (120 * r, 80 * r),
+            (80 * r, 120 * r),
+            (40 * r, 120 * r),
+            (0, 80 * r),
+            (0, 40 * r),
+        ]
         c_body.position = x, y
-        c_shape = pymunk.Poly(c_body, vertices, radius = 20)
-       # c_shape = pymunk.Poly(c_body, [(0.0, -30.0), (19.0, -23.0), (30.0, -5.0), (26.0, 15.0), (10.0, 28.0), (-10.0, 28.0), (-26.0, 15.0), (-30.0, -5.0), (-19.0, -23.0)])
+        c_shape = pymunk.Poly(c_body, vertices, radius=20)
+        # c_shape = pymunk.Poly(c_body, [(0.0, -30.0), (19.0, -23.0), (30.0, -5.0), (26.0, 15.0), (10.0, 28.0), (-10.0, 28.0), (-26.0, 15.0), (-30.0, -5.0), (-19.0, -23.0)])
         c_shape.color = pygame.color.THECOLORS["gainsboro"]
         c_shape.elasticity = 1.0
         self.space.add(c_body, c_shape)
@@ -105,13 +109,13 @@ class GameState:
 
     def frame_step(self, action):
         if action == 0:  # Turn left.
-            self.ob_body.angle -= .2
+            self.ob_body.angle -= 0.2
         elif action == 1:  # Turn right.
-            self.ob_body.angle += .2
+            self.ob_body.angle += 0.2
         # Move ast.
         if self.num_steps % 100 == 0:
             self.move_ast()
-            #print("WITh")
+            # print("WITh")
 
         # Move mover.
         if self.num_steps % 5 == 0:
@@ -122,20 +126,22 @@ class GameState:
             self.mx = self.cnt
         driving_direction = Vec2d(1, 0).rotated(self.ob_body.angle)
         self.ob_body.velocity = 100 * driving_direction
-        CURSOR_UP_ONE = '\x1b[1A' 
-        ERASE_LINE = '\x1b[2K'
+        CURSOR_UP_ONE = "\x1b[1A"
+        ERASE_LINE = "\x1b[2K"
         screen.fill(THECOLORS["black"])
-        #print("Caught")
+        # print("Caught")
         draw(screen, self.space)
-        screen.blit(font.render("Score: " + str(self.cnt), 
-            1, THECOLORS["white"]), (400,0))
-        screen.blit(font.render("MAX Score: " + str(self.mx), 
-            1, THECOLORS["white"]), (600,0))
-        #pygame.display.set_caption("Game")
-        #for _ in range(3):
-         #   sys.stdout.write(CURSOR_UP_ONE)
-          #  sys.stdout.write(ERASE_LINE)
-        self.space.step(1./10) # frame change................................
+        screen.blit(
+            font.render("Score: " + str(self.cnt), 1, THECOLORS["white"]), (400, 0)
+        )
+        screen.blit(
+            font.render("MAX Score: " + str(self.mx), 1, THECOLORS["white"]), (600, 0)
+        )
+        # pygame.display.set_caption("Game")
+        # for _ in range(3):
+        #   sys.stdout.write(CURSOR_UP_ONE)
+        #  sys.stdout.write(ERASE_LINE)
+        self.space.step(1.0 / 10)  # frame change................................
         if draw_screen:
             pygame.display.flip()
         clock.tick()
@@ -143,7 +149,7 @@ class GameState:
         # Get the current lomoverion and the readings there.
         x, y = self.ob_body.position
         readings = self.get_sensor_readings(x, y, self.ob_body.angle)
-        normalized_readings = [(x-20.0)/20.0 for x in readings] 
+        normalized_readings = [(x - 20.0) / 20.0 for x in readings]
         state = np.array([normalized_readings])
 
         # Set the reward.
@@ -186,10 +192,10 @@ class GameState:
             self.ob_body.velocity = -100 * driving_direction
             self.crashed = False
             for i in range(10):
-                self.ob_body.angle += .2 
-                screen.fill(THECOLORS["orange"])  
+                self.ob_body.angle += 0.2
+                screen.fill(THECOLORS["orange"])
                 draw(screen, self.space)
-                self.space.step(1./10)
+                self.space.step(1.0 / 10)
                 if draw_screen:
                     pygame.display.flip()
                 clock.tick()
@@ -208,8 +214,8 @@ class GameState:
         readings.append(self.get_arm_distance(arm_left, x, y, angle, 0.75))
         readings.append(self.get_arm_distance(arm_middle, x, y, angle, 0))
         readings.append(self.get_arm_distance(arm_right, x, y, angle, -0.75))
-        #arm = self.make_sonar(x, y)
-        #g = self.draw_sensor(arm, x, y, angle, 0)
+        # arm = self.make_sonar(x, y)
+        # g = self.draw_sensor(arm, x, y, angle, 0)
         if show_sensors:
             pygame.display.update()
 
@@ -224,14 +230,16 @@ class GameState:
             i += 1
 
             # Move the point to the right spot.
-            rotated_p = self.get_rotated_point(
-                x, y, point[0], point[1], angle + offset
-            )
+            rotated_p = self.get_rotated_point(x, y, point[0], point[1], angle + offset)
 
             # Check if we've hit something. Return the current i (distance)
             # if we did.
-            if rotated_p[0] <= 0 or rotated_p[1] <= 0 \
-                    or rotated_p[0] >= width or rotated_p[1] >= height:
+            if (
+                rotated_p[0] <= 0
+                or rotated_p[1] <= 0
+                or rotated_p[0] >= width
+                or rotated_p[1] >= height
+            ):
                 return i  # Sensor is off the screen.
             else:
                 obs = screen.get_at(rotated_p)
@@ -268,8 +276,8 @@ class GameState:
         spread = 10
         distance = 20
         arm_points = []
-        for i in range (1, 10):
-            arm_points.append((distance + x + (spread * i) + i*50, y))
+        for i in range(1, 10):
+            arm_points.append((distance + x + (spread * i) + i * 50, y))
 
         return arm_points
 
@@ -287,8 +295,12 @@ class GameState:
 
             # Check if we've hit something. Return the current i (distance)
             # if we did.
-            if rotated_p[0] <= 0 or rotated_p[1] <= 0 \
-                    or rotated_p[0] >= width or rotated_p[1] >= height:
+            if (
+                rotated_p[0] <= 0
+                or rotated_p[1] <= 0
+                or rotated_p[0] >= width
+                or rotated_p[1] >= height
+            ):
                 return i  # Sensor is off the screen.
             else:
                 obs = screen.get_at(rotated_p)
@@ -312,19 +324,18 @@ class GameState:
 
     def get_rotated_point(self, x_1, y_1, x_2, y_2, radians):
         # Rotate x_2, y_2 around x_1, y_1 by angle.
-        x_change = (x_2 - x_1) * math.cos(radians) + \
-            (y_2 - y_1) * math.sin(radians)
-        y_change = (y_1 - y_2) * math.cos(radians) - \
-            (x_1 - x_2) * math.sin(radians)
+        x_change = (x_2 - x_1) * math.cos(radians) + (y_2 - y_1) * math.sin(radians)
+        y_change = (y_1 - y_2) * math.cos(radians) - (x_1 - x_2) * math.sin(radians)
         new_x = x_change + x_1
         new_y = height - (y_change + y_1)
         return int(new_x), int(new_y)
 
     def get_track_or_not(self, reading):
-        if reading == THECOLORS['black']:
+        if reading == THECOLORS["black"]:
             return 0
         else:
             return 1
+
 
 if __name__ == "__main__":
     game_state = GameState()
